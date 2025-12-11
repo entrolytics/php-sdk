@@ -1,7 +1,7 @@
 {
     "name": "entrolytics-ng/php",
     "version": "2.0.0",
-    "description": "PHP SDK for Entrolytics - First-party growth analytics",
+    "description": "PHP SDK for Entrolytics - First-party growth analytics for the edge",
     "type": "library",
     "license": "MIT",
     "keywords": [
