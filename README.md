@@ -1,14 +1,81 @@
-# entro-php
+<div align="center">
+  <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
 
-PHP SDK for [Entrolytics](https://ng.entrolytics.click) - First-party growth analytics for the edge.
+  [![Packagist](https://img.shields.io/packagist/v/entrolytics-ng/php.svg?logo=packagist&logoColor=white)](https://packagist.org/packages/entrolytics-ng/php)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+  [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?logo=php&logoColor=white)](https://www.php.net/)
+
+</div>
+
+---
+
+## Overview
+
+**entrolytics-ng/php** is the official PHP SDK for Entrolytics - first-party growth analytics for the edge. Track events server-side from Laravel or any PHP application.
+
+**Why use this SDK?**
+- Laravel integration with Blade directive
+- Middleware for automatic page view tracking
+- Facade and dependency injection support
+- Comprehensive error handling with typed exceptions
+
+## Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### Analytics
+- Custom event tracking
+- Page view tracking
+- User identification
+- Session management
+
+</td>
+<td width="50%">
+
+### Laravel Integration
+- `@entrolytics` Blade directive
+- `Entrolytics` facade
+- Auto-tracking middleware
+- Dependency injection
+
+</td>
+</tr>
+</table>
+
+## Quick Start
+
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:download.svg?color=%236366f1" width="48"><br>
+<strong>1. Install</strong><br>
+<code>composer require entrolytics-ng/php</code>
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:code.svg?color=%236366f1" width="48"><br>
+<strong>2. Create Client</strong><br>
+<code>new Client($apiKey)</code>
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:settings.svg?color=%236366f1" width="48"><br>
+<strong>3. Configure</strong><br>
+Set API key and Website ID
+</td>
+<td align="center" width="25%">
+<img src="https://api.iconify.design/lucide:bar-chart-3.svg?color=%236366f1" width="48"><br>
+<strong>4. Track</strong><br>
+View analytics in dashboard
+</td>
+</tr>
+</table>
 
 ## Installation
 
 ```bash
 composer require entrolytics-ng/php
 ```
-
-## Quick Start
 
 ```php
 <?php
