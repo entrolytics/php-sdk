@@ -1,6 +1,6 @@
-# Contributing to entrolytics-ng/php
+# Contributing to entrolytics/php
 
-Thank you for your interest in contributing to entrolytics-ng/php!
+Thank you for your interest in contributing to entrolytics/php!
 
 This package is part of the [Entrolytics](https://github.com/entrolytics/entrolytics-system) monorepo.
 

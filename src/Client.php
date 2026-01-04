@@ -27,7 +27,7 @@ use Entrolytics\Exception\ValidationException;
  */
 class Client
 {
-    private const DEFAULT_HOST = 'https://ng.entrolytics.click';
+    private const DEFAULT_HOST = 'https://entrolytics.click';
     private const DEFAULT_TIMEOUT = 10.0;
     private const VERSION = '1.1.0';
 
@@ -222,12 +222,12 @@ class Client
     }
 
     // ========================================================================
-    // Phase 2: Web Vitals (requires entrolytics-ng)
+    // Phase 2: Web Vitals (requires entrolytics)
     // ========================================================================
 
     /**
      * Track a Web Vital metric.
-     * Note: This feature requires entrolytics-ng.
+     * Note: This feature requires entrolytics.
      *
      * @param array{
      *     website_id: string,
@@ -294,12 +294,12 @@ class Client
     }
 
     // ========================================================================
-    // Phase 2: Form Analytics (requires entrolytics-ng)
+    // Phase 2: Form Analytics (requires entrolytics)
     // ========================================================================
 
     /**
      * Track a form interaction event.
-     * Note: This feature requires entrolytics-ng.
+     * Note: This feature requires entrolytics.
      *
      * @param array{
      *     website_id: string,
@@ -378,12 +378,12 @@ class Client
     }
 
     // ========================================================================
-    // Phase 2: Deployment Tracking (requires entrolytics-ng)
+    // Phase 2: Deployment Tracking (requires entrolytics)
     // ========================================================================
 
     /**
      * Register deployment context.
-     * Note: This feature requires entrolytics-ng.
+     * Note: This feature requires entrolytics.
      *
      * @param array{
      *     website_id: string,

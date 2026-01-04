@@ -20,7 +20,7 @@ class EntrolyticsServiceProvider extends ServiceProvider
             $config = $app['config']['entrolytics'];
 
             return new Client($config['api_key'], [
-                'host' => $config['host'] ?? 'https://ng.entrolytics.click',
+                'host' => $config['host'] ?? 'https://entrolytics.click',
                 'timeout' => $config['timeout'] ?? 10.0,
             ]);
         });
@@ -50,7 +50,7 @@ class EntrolyticsServiceProvider extends ServiceProvider
     {
         $this->app['blade.compiler']->directive('entrolytics', function () {
             $websiteId = config('entrolytics.website_id');
-            $host = config('entrolytics.host', 'https://ng.entrolytics.click');
+            $host = config('entrolytics.host', 'https://entrolytics.click');
 
             if (empty($websiteId)) {
                 return '';

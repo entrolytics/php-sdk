@@ -29,7 +29,7 @@ return [
     | The Entrolytics API host. Change this if you're self-hosting.
     |
     */
-    'host' => env('ENTROLYTICS_HOST', 'https://ng.entrolytics.click'),
+    'host' => env('ENTROLYTICS_HOST', 'https://entrolytics.click'),
 
     /*
     |--------------------------------------------------------------------------

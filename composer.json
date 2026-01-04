@@ -1,26 +1,26 @@
 {
-    "name": "entrolytics-ng/php",
-    "version": "2.0.0",
+    "name": "entrolytics/php",
+    "version": "2.1.0",
     "description": "PHP SDK for Entrolytics - First-party growth analytics for the edge",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "entrolytics",
-        "entrolytics-ng",
+        "entrolytics",
         "analytics",
         "tracking",
         "web-analytics",
         "laravel"
     ],
-    "homepage": "https://ng.entrolytics.click",
+    "homepage": "https://entrolytics.click",
     "support": {
-        "issues": "https://github.com/entrolytics/entrolytics-ng/issues",
-        "source": "https://github.com/entrolytics/entrolytics-ng/tree/main/packages/php"
+        "issues": "https://github.com/entrolytics/entrolytics/issues",
+        "source": "https://github.com/entrolytics/entrolytics/tree/main/packages/php"
     },
     "authors": [
         {
             "name": "Entrolytics",
-            "email": "hey@ng.entrolytics.click"
+            "email": "hey@entrolytics.click"
         }
     ],
     "require": {

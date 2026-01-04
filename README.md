@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
 
-  [![Packagist](https://img.shields.io/packagist/v/entrolytics-ng/php.svg?logo=packagist&logoColor=white)](https://packagist.org/packages/entrolytics-ng/php)
+  [![Packagist](https://img.shields.io/packagist/v/entrolytics/php.svg?logo=packagist&logoColor=white)](https://packagist.org/packages/entrolytics/php)
   [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
   [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?logo=php&logoColor=white)](https://www.php.net/)
 
@@ -11,7 +11,7 @@
 
 ## Overview
 
-**entrolytics-ng/php** is the official PHP SDK for Entrolytics - first-party growth analytics for the edge. Track events server-side from Laravel or any PHP application.
+**entrolytics/php** is the official PHP SDK for Entrolytics - first-party growth analytics for the edge. Track events server-side from Laravel or any PHP application.
 
 **Why use this SDK?**
 - Laravel integration with Blade directive
@@ -51,7 +51,7 @@
 <td align="center" width="25%">
 <img src="https://api.iconify.design/lucide:download.svg?color=%236366f1" width="48"><br>
 <strong>1. Install</strong><br>
-<code>composer require entrolytics-ng/php</code>
+<code>composer require entrolytics/php</code>
 </td>
 <td align="center" width="25%">
 <img src="https://api.iconify.design/lucide:code.svg?color=%236366f1" width="48"><br>
@@ -74,7 +74,7 @@ View analytics in dashboard
 ## Installation
 
 ```bash
-composer require entrolytics-ng/php
+composer require entrolytics/php
 ```
 
 ```php
@@ -192,7 +192,7 @@ use Entrolytics\Client;
 
 // Use edge endpoint for sub-50ms latency
 $client = new Client('ent_xxx', [
-    'host' => 'https://ng.entrolytics.click',
+    'host' => 'https://entrolytics.click',
     'endpoint' => '/api/send-native'
 ]);
 ```
@@ -206,12 +206,12 @@ use Entrolytics\Client;
 
 // Use Node.js endpoint for ClickHouse export and MaxMind GeoIP
 $client = new Client('ent_xxx', [
-    'host' => 'https://ng.entrolytics.click',
+    'host' => 'https://entrolytics.click',
     'endpoint' => '/api/send'
 ]);
 ```
 
-See the [Routing documentation](https://ng.entrolytics.click/docs/concepts/routing) for more details.
+See the [Routing documentation](https://entrolytics.click/docs/concepts/routing) for more details.
 
 ## Laravel Integration
 
@@ -230,7 +230,7 @@ php artisan vendor:publish --tag=entrolytics-config
 Add to your `.env`:
 
 ```env
-ENTROLYTICS_NG_WEBSITE_ID=your-website-id
+ENTROLYTICS_WEBSITE_ID=your-website-id
 ENTROLYTICS_API_KEY=ent_xxx
 ```
 
@@ -418,7 +418,7 @@ try {
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | api_key | string | Required | Your Entrolytics API key |
-| host | string | `https://ng.entrolytics.click` | Entrolytics host URL |
+| host | string | `https://entrolytics.click` | Entrolytics host URL |
 | timeout | float | 10.0 | Request timeout in seconds |
 
 ```php
