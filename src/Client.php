@@ -56,7 +56,7 @@ class Client
             'base_uri' => $this->host,
             'timeout' => $this->timeout,
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'x-api-key' => $this->apiKey,
                 'Content-Type' => 'application/json',
                 'User-Agent' => 'entrolytics-php/' . self::VERSION,
             ],
@@ -74,6 +74,7 @@ class Client
      *     referrer?: string,
      *     user_id?: string,
      *     session_id?: string,
+    *     visitor_id?: string,
      *     user_agent?: string,
      *     ip_address?: string
      * } $params Event parameters
@@ -92,28 +93,29 @@ class Client
             throw new ValidationException('event is required');
         }
 
+        $properties = $params['data'] ?? [];
+        if (!empty($params['user_id'])) {
+            $properties['distinctId'] = $params['user_id'];
+        }
+
         $payload = [
-            'type' => 'event',
-            'payload' => [
-                'website' => $websiteId,
-                'name' => $event,
-                'data' => $params['data'] ?? [],
-                'url' => $params['url'] ?? null,
-                'referrer' => $params['referrer'] ?? null,
-                'timestamp' => date('c'),
-            ],
+            'websiteId' => $websiteId,
+            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
+            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'url' => $this->normalizeUrl($params['url'] ?? null, '/track'),
+            'eventType' => 'custom_event',
+            'eventName' => $event,
+            'properties' => $properties,
         ];
 
-        if (!empty($params['user_id'])) {
-            $payload['payload']['userId'] = $params['user_id'];
-        }
-        if (!empty($params['session_id'])) {
-            $payload['payload']['sessionId'] = $params['session_id'];
+        $normalizedReferrer = $this->normalizeReferrer($params['referrer'] ?? null);
+        if ($normalizedReferrer !== null) {
+            $payload['referrer'] = $normalizedReferrer;
         }
 
         $headers = [];
         if (!empty($params['user_agent'])) {
-            $headers['X-Forwarded-User-Agent'] = $params['user_agent'];
+            $headers['User-Agent'] = $params['user_agent'];
         }
         if (!empty($params['ip_address'])) {
             $headers['X-Forwarded-For'] = $params['ip_address'];
@@ -132,6 +134,7 @@ class Client
      *     title?: string,
      *     user_id?: string,
      *     session_id?: string,
+    *     visitor_id?: string,
      *     user_agent?: string,
      *     ip_address?: string
      * } $params Page view parameters
@@ -155,28 +158,27 @@ class Client
             $data['title'] = $params['title'];
         }
 
+        if (!empty($params['user_id'])) {
+            $data['distinctId'] = $params['user_id'];
+        }
+
         $payload = [
-            'type' => 'event',
-            'payload' => [
-                'website' => $websiteId,
-                'name' => '$pageview',
-                'data' => $data,
-                'url' => $url,
-                'referrer' => $params['referrer'] ?? null,
-                'timestamp' => date('c'),
-            ],
+            'websiteId' => $websiteId,
+            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
+            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'url' => $this->normalizeUrl($url, '/'),
+            'eventType' => 'pageview',
+            'properties' => $data,
         ];
 
-        if (!empty($params['user_id'])) {
-            $payload['payload']['userId'] = $params['user_id'];
-        }
-        if (!empty($params['session_id'])) {
-            $payload['payload']['sessionId'] = $params['session_id'];
+        $normalizedReferrer = $this->normalizeReferrer($params['referrer'] ?? null);
+        if ($normalizedReferrer !== null) {
+            $payload['referrer'] = $normalizedReferrer;
         }
 
         $headers = [];
         if (!empty($params['user_agent'])) {
-            $headers['X-Forwarded-User-Agent'] = $params['user_agent'];
+            $headers['User-Agent'] = $params['user_agent'];
         }
         if (!empty($params['ip_address'])) {
             $headers['X-Forwarded-For'] = $params['ip_address'];
@@ -209,13 +211,16 @@ class Client
         }
 
         $payload = [
-            'type' => 'identify',
-            'payload' => [
-                'website' => $websiteId,
-                'userId' => $userId,
-                'traits' => $params['traits'] ?? [],
-                'timestamp' => date('c'),
-            ],
+            'websiteId' => $websiteId,
+            'sessionId' => $this->generateUuid(),
+            'visitorId' => $this->generateUuid(),
+            'url' => $this->normalizeUrl('/identify', '/identify'),
+            'eventType' => 'custom_event',
+            'eventName' => 'identify',
+            'properties' => array_merge(
+                ['distinctId' => $userId],
+                $params['traits'] ?? [],
+            ),
         ];
 
         return $this->send($payload);
@@ -240,7 +245,8 @@ class Client
      *     attribution?: array<string, mixed>,
      *     url?: string,
      *     path?: string,
-     *     session_id?: string
+    *     session_id?: string,
+    *     visitor_id?: string
      * } $params Web Vital parameters
      * @return bool True on success
      * @throws EntrolyticsException
@@ -262,33 +268,14 @@ class Client
         }
 
         $payload = [
-            'website' => $websiteId,
-            'metric' => $metric,
-            'value' => $params['value'] ?? 0,
-            'rating' => $rating,
+            'websiteId' => $websiteId,
+            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
+            'url' => $this->normalizeUrl($params['url'] ?? null, '/vital'),
+            'path' => $params['path'] ?? '/vital',
+            'metricName' => $metric,
+            'metricValue' => $params['value'] ?? 0,
         ];
-
-        if (isset($params['delta'])) {
-            $payload['delta'] = $params['delta'];
-        }
-        if (!empty($params['id'])) {
-            $payload['id'] = $params['id'];
-        }
-        if (!empty($params['navigation_type'])) {
-            $payload['navigationType'] = $params['navigation_type'];
-        }
-        if (!empty($params['attribution'])) {
-            $payload['attribution'] = $params['attribution'];
-        }
-        if (!empty($params['url'])) {
-            $payload['url'] = $params['url'];
-        }
-        if (!empty($params['path'])) {
-            $payload['path'] = $params['path'];
-        }
-        if (!empty($params['session_id'])) {
-            $payload['sessionId'] = $params['session_id'];
-        }
 
         return $this->sendToEndpoint('/api/collect/vitals', $payload);
     }
@@ -314,7 +301,8 @@ class Client
      *     time_since_start?: int,
      *     error_message?: string,
      *     success?: bool,
-     *     session_id?: string
+    *     session_id?: string,
+    *     visitor_id?: string
      * } $params Form event parameters
      * @return bool True on success
      * @throws EntrolyticsException
@@ -340,7 +328,9 @@ class Client
         }
 
         $payload = [
-            'website' => $websiteId,
+            'websiteId' => $websiteId,
+            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
             'eventType' => $eventType,
             'formId' => $formId,
             'urlPath' => $urlPath,
@@ -370,10 +360,6 @@ class Client
         if (isset($params['success'])) {
             $payload['success'] = $params['success'];
         }
-        if (!empty($params['session_id'])) {
-            $payload['sessionId'] = $params['session_id'];
-        }
-
         return $this->sendToEndpoint('/api/collect/forms', $payload);
     }
 
@@ -439,7 +425,7 @@ class Client
      */
     private function send(array $payload, array $headers = []): bool
     {
-        return $this->sendToEndpoint('/api/send', $payload, $headers);
+        return $this->sendToEndpoint('/collect', $payload, $headers);
     }
 
     /**
@@ -460,7 +446,7 @@ class Client
             ]);
 
             $statusCode = $response->getStatusCode();
-            return $statusCode === 200 || $statusCode === 201;
+            return $statusCode === 200 || $statusCode === 201 || $statusCode === 202;
         } catch (RequestException $e) {
             $response = $e->getResponse();
 
@@ -508,6 +494,50 @@ class Client
         if (!empty($header)) {
             return (int) $header[0];
         }
+        return null;
+    }
+
+    private function generateUuid(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+
+        $hex = bin2hex($bytes);
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),
+            substr($hex, 8, 4),
+            substr($hex, 12, 4),
+            substr($hex, 16, 4),
+            substr($hex, 20, 12),
+        );
+    }
+
+    private function normalizeUrl(?string $url, string $fallbackPath): string
+    {
+        $raw = $url ?: $fallbackPath;
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return $raw;
+        }
+
+        if (!str_starts_with($raw, '/')) {
+            $raw = '/' . $raw;
+        }
+
+        return $this->host . $raw;
+    }
+
+    private function normalizeReferrer(?string $referrer): ?string
+    {
+        if (empty($referrer)) {
+            return null;
+        }
+
+        if (str_starts_with($referrer, 'http://') || str_starts_with($referrer, 'https://')) {
+            return $referrer;
+        }
+
         return null;
     }
 }

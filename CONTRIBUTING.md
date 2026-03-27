@@ -20,21 +20,29 @@ Please read the main [Contributing Guide](../CONTRIBUTING.md) in the root of thi
 ```
 entro-php/
 ├── src/          # Source code
+
 ├── dist/         # Built output (generated)
+
 ├── package.json  # Package manifest
+
 └── README.md     # Package documentation
+
 ```
 
 ### Development Commands
 
 ```bash
+
 # Install dependencies
+
 composer install
 
 # Run tests
+
 vendor/bin/phpunit
 
 # Validate composer.json
+
 composer validate
 ```
 

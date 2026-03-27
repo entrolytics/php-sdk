@@ -1,6 +1,6 @@
 {
     "name": "entrolytics/php",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "PHP SDK for Entrolytics - First-party growth analytics for the edge",
     "type": "library",
     "license": "MIT",
@@ -28,8 +28,14 @@
         "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
         "phpunit/phpunit": "^10.0",
         "laravel/framework": "^10.0|^11.0"
+    },
+    "scripts": {
+        "lint": "php-cs-fixer fix --dry-run --diff",
+        "lint:fix": "php-cs-fixer fix",
+        "test": "phpunit"
     },
     "autoload": {
         "psr-4": {

@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
+- <img src="https://raw.githubusercontent.com/entrolytics/.github/main/media/entrov2.png" alt="Entrolytics" width="64" height="64">
 
-  [![Packagist](https://img.shields.io/packagist/v/entrolytics/php.svg?logo=packagist&logoColor=white)](https://packagist.org/packages/entrolytics/php)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-  [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?logo=php&logoColor=white)](https://www.php.net/)
+- [![Packagist](https://img.shields.io/packagist/v/entrolytics/php.svg?logo=packagist\&logoColor=white)](https://packagist.org/packages/entrolytics/php)
+- [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+- [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?logo=php\&logoColor=white)](https://www.php.net/)
 
 </div>
 
@@ -14,6 +14,7 @@
 **entrolytics/php** is the official PHP SDK for Entrolytics - first-party growth analytics for the edge. Track events server-side from Laravel or any PHP application.
 
 **Why use this SDK?**
+
 - Laravel integration with Blade directive
 - Middleware for automatic page view tracking
 - Facade and dependency injection support
@@ -26,6 +27,7 @@
 <td width="50%">
 
 ### Analytics
+
 - Custom event tracking
 - Page view tracking
 - User identification
@@ -35,6 +37,7 @@
 <td width="50%">
 
 ### Laravel Integration
+
 - `@entrolytics` Blade directive
 - `Entrolytics` facade
 - Auto-tracking middleware
@@ -117,58 +120,15 @@ $client->identify([
 
 ## Collection Endpoints
 
-Entrolytics provides three collection endpoints optimized for different use cases:
+This SDK uses the canonical Entrolytics ingestion contract:
 
-### `/api/collect` - Intelligent Routing (Recommended)
+### `/collect` - Event Ingestion (Default)
 
-The default endpoint that automatically routes to the optimal storage backend based on your plan and website settings.
+Used by `track`, `pageView`, and `identify`.
 
-**Features:**
-- Automatic optimization (Free/Pro → Edge, Business/Enterprise → Node.js)
-- Zero configuration required
-- Best balance of performance and features
+### `/api/collect/vitals` and `/api/collect/forms` - Phase 2 Telemetry
 
-**Use when:**
-- You want automatic optimization based on your plan
-- You're using Entrolytics Cloud
-- You don't have specific latency or feature requirements
-
-### `/api/send-native` - Edge Runtime (Fastest)
-
-Direct edge endpoint for sub-50ms global latency.
-
-**Features:**
-- Sub-50ms response times globally
-- Runs on Vercel Edge Runtime
-- Upstash Redis + Neon Serverless
-- Best for high-traffic applications
-
-**Limitations:**
-- No ClickHouse export
-- Basic geo data (country-level)
-
-**Use when:**
-- Latency is critical (<50ms required)
-- You have high request volume
-- You don't need ClickHouse export
-
-### `/api/send` - Node.js Runtime (Full-Featured)
-
-Traditional Node.js endpoint with advanced capabilities.
-
-**Features:**
-- ClickHouse export support
-- MaxMind GeoIP (city-level accuracy)
-- PostgreSQL storage
-- Advanced analytics features
-
-**Latency:** 50-150ms (regional)
-
-**Use when:**
-- Self-hosted deployments without edge support
-- You need ClickHouse data export
-- You require city-level geo accuracy
-- Custom server-side analytics workflows
+Used by `trackVital` and `trackFormEvent` when those features are enabled in your Entrolytics backend.
 
 ## Configuration
 
@@ -179,35 +139,20 @@ Traditional Node.js endpoint with advanced capabilities.
 
 use Entrolytics\Client;
 
-// Uses /api/collect by default
+// Uses /collect by default
 $client = new Client('ent_xxx');
 ```
 
-### Edge Runtime Endpoint
+### Custom Host
 
 ```php
 <?php
 
 use Entrolytics\Client;
 
-// Use edge endpoint for sub-50ms latency
+// Point to a custom Entrolytics host (cloud or self-hosted)
 $client = new Client('ent_xxx', [
-    'host' => 'https://entrolytics.click',
-    'endpoint' => '/api/send-native'
-]);
-```
-
-### Node.js Runtime Endpoint
-
-```php
-<?php
-
-use Entrolytics\Client;
-
-// Use Node.js endpoint for ClickHouse export and MaxMind GeoIP
-$client = new Client('ent_xxx', [
-    'host' => 'https://entrolytics.click',
-    'endpoint' => '/api/send'
+    'host' => 'https://analytics.yourdomain.com'
 ]);
 ```
 
@@ -338,41 +283,41 @@ Route::middleware(['entrolytics.track'])->group(function () {
 
 Track a custom event.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| website_id | string | Yes | Your Entrolytics website ID |
-| event | string | Yes | Event name (e.g., 'purchase', 'signup') |
-| data | array | No | Additional event data |
-| url | string | No | Page URL where event occurred |
-| referrer | string | No | Referrer URL |
-| user_id | string | No | User identifier |
-| session_id | string | No | Session identifier |
-| user_agent | string | No | User agent string |
-| ip_address | string | No | Client IP address |
+| Parameter   | Type   | Required | Description                             |
+| ----------- | ------ | -------- | --------------------------------------- |
+| website\_id | string | Yes      | Your Entrolytics website ID             |
+| event       | string | Yes      | Event name (e.g., 'purchase', 'signup') |
+| data        | array  | No       | Additional event data                   |
+| url         | string | No       | Page URL where event occurred           |
+| referrer    | string | No       | Referrer URL                            |
+| user\_id    | string | No       | User identifier                         |
+| session\_id | string | No       | Session identifier                      |
+| user\_agent | string | No       | User agent string                       |
+| ip\_address | string | No       | Client IP address                       |
 
 #### `pageView(array $params): bool`
 
 Track a page view.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| website_id | string | Yes | Your Entrolytics website ID |
-| url | string | Yes | Page URL |
-| referrer | string | No | Referrer URL |
-| title | string | No | Page title |
-| user_id | string | No | User identifier |
-| user_agent | string | No | User agent string |
-| ip_address | string | No | Client IP address |
+| Parameter   | Type   | Required | Description                 |
+| ----------- | ------ | -------- | --------------------------- |
+| website\_id | string | Yes      | Your Entrolytics website ID |
+| url         | string | Yes      | Page URL                    |
+| referrer    | string | No       | Referrer URL                |
+| title       | string | No       | Page title                  |
+| user\_id    | string | No       | User identifier             |
+| user\_agent | string | No       | User agent string           |
+| ip\_address | string | No       | Client IP address           |
 
 #### `identify(array $params): bool`
 
 Identify a user with traits.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| website_id | string | Yes | Your Entrolytics website ID |
-| user_id | string | Yes | Unique user identifier |
-| traits | array | No | User traits (email, plan, etc.) |
+| Parameter   | Type   | Required | Description                     |
+| ----------- | ------ | -------- | ------------------------------- |
+| website\_id | string | Yes      | Your Entrolytics website ID     |
+| user\_id    | string | Yes      | Unique user identifier          |
+| traits      | array  | No       | User traits (email, plan, etc.) |
 
 ## Error Handling
 
@@ -415,11 +360,11 @@ try {
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| api_key | string | Required | Your Entrolytics API key |
-| host | string | `https://entrolytics.click` | Entrolytics host URL |
-| timeout | float | 10.0 | Request timeout in seconds |
+| Option   | Type   | Default                     | Description                |
+| -------- | ------ | --------------------------- | -------------------------- |
+| api\_key | string | Required                    | Your Entrolytics API key   |
+| host     | string | `https://entrolytics.click` | Entrolytics host URL       |
+| timeout  | float  | 10.0                        | Request timeout in seconds |
 
 ```php
 $client = new Client('ent_xxx', [
