@@ -27,7 +27,7 @@ use Entrolytics\Exception\ValidationException;
  */
 class Client
 {
-    private const DEFAULT_HOST = 'https://entrolytics.click';
+    private const DEFAULT_HOST = 'https://api.entrolytics.click';
     private const DEFAULT_TIMEOUT = 10.0;
     private const VERSION = '1.1.0';
 
@@ -100,6 +100,8 @@ class Client
 
         $payload = [
             'websiteId' => $websiteId,
+            'eventId' => $this->generateUuid(),
+            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
             'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
             'url' => $this->normalizeUrl($params['url'] ?? null, '/track'),
@@ -164,6 +166,8 @@ class Client
 
         $payload = [
             'websiteId' => $websiteId,
+            'eventId' => $this->generateUuid(),
+            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
             'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
             'url' => $this->normalizeUrl($url, '/'),
@@ -212,6 +216,8 @@ class Client
 
         $payload = [
             'websiteId' => $websiteId,
+            'eventId' => $this->generateUuid(),
+            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'sessionId' => $this->generateUuid(),
             'visitorId' => $this->generateUuid(),
             'url' => $this->normalizeUrl('/identify', '/identify'),
