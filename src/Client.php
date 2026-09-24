@@ -103,7 +103,7 @@ class Client
             'eventId' => $this->generateUuid(),
             'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
-            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
             'url' => $this->normalizeUrl($params['url'] ?? null, '/track'),
             'eventType' => 'custom_event',
             'eventName' => $event,
@@ -117,7 +117,7 @@ class Client
 
         $headers = [];
         if (!empty($params['user_agent'])) {
-            $headers['User-Agent'] = $params['user_agent'];
+            $headers['X-Forwarded-User-Agent'] = $params['user_agent'];
         }
         if (!empty($params['ip_address'])) {
             $headers['X-Forwarded-For'] = $params['ip_address'];
@@ -169,7 +169,7 @@ class Client
             'eventId' => $this->generateUuid(),
             'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
-            'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
+            'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
             'url' => $this->normalizeUrl($url, '/'),
             'eventType' => 'pageview',
             'properties' => $data,
@@ -182,7 +182,7 @@ class Client
 
         $headers = [];
         if (!empty($params['user_agent'])) {
-            $headers['User-Agent'] = $params['user_agent'];
+            $headers['X-Forwarded-User-Agent'] = $params['user_agent'];
         }
         if (!empty($params['ip_address'])) {
             $headers['X-Forwarded-For'] = $params['ip_address'];
@@ -275,6 +275,8 @@ class Client
 
         $payload = [
             'websiteId' => $websiteId,
+            'eventId' => $this->generateUuid(),
+            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
             'url' => $this->normalizeUrl($params['url'] ?? null, '/vital'),
@@ -335,6 +337,8 @@ class Client
 
         $payload = [
             'websiteId' => $websiteId,
+            'eventId' => $this->generateUuid(),
+            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
             'visitorId' => $params['visitor_id'] ?? $this->generateUuid(),
             'sessionId' => $params['session_id'] ?? $this->generateUuid(),
             'eventType' => $eventType,
@@ -505,7 +509,47 @@ class Client
 
     private function generateUuid(): string
     {
-        $bytes = random_bytes(16);
+        return $this->toUuidV4(random_bytes(16));
+    }
+
+    /**
+     * The visitor id for an event made on a visitor's behalf: one derived from the visitor's IP
+     * address and user agent, or a new one when neither is known.
+     *
+     * @param array<string, mixed> $params Event parameters
+     */
+    private function requestVisitorId(string $websiteId, array $params): string
+    {
+        if (empty($params['ip_address']) && empty($params['user_agent'])) {
+            return $this->generateUuid();
+        }
+
+        return $this->deriveVisitorId($websiteId, $params['ip_address'] ?? '', $params['user_agent'] ?? '');
+    }
+
+    /**
+     * A site-scoped visitor id that rotates at midnight UTC, derived from the visitor's IP address
+     * and user agent.
+     *
+     * Server-side events carry no browser identifier, and a new id per call counted every event as a
+     * new visitor. The API identifies browser visitors the same way, with a daily keyed hash and no
+     * cookie, so server-side events follow the same privacy model. The key is the API key, so the id
+     * cannot be recomputed from an IP address and user agent alone.
+     */
+    private function deriveVisitorId(
+        string $websiteId,
+        string $ip,
+        string $userAgent,
+        ?\DateTimeImmutable $now = null,
+    ): string {
+        $day = ($now ?? new \DateTimeImmutable())->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d');
+        $digest = hash_hmac('sha256', "{$websiteId}\0{$day}\0{$ip}\0{$userAgent}", $this->apiKey, true);
+
+        return $this->toUuidV4(substr($digest, 0, 16));
+    }
+
+    private function toUuidV4(string $bytes): string
+    {
         $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
         $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
 
