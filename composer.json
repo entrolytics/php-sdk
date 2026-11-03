@@ -39,21 +39,21 @@
     },
     "autoload": {
         "psr-4": {
-            "EntrolyticsNG\\": "src/"
+            "Entrolytics\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "EntrolyticsNG\\Tests\\": "tests/"
+            "Entrolytics\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "EntrolyticsNG\\Laravel\\EntrolyticsServiceProvider"
+                "Entrolytics\\Laravel\\EntrolyticsServiceProvider"
             ],
             "aliases": {
-                "EntrolyticsNG": "EntrolyticsNG\\Laravel\\EntrolyticsFacade"
+                "Entrolytics": "Entrolytics\\Laravel\\EntrolyticsFacade"
             }
         }
     },

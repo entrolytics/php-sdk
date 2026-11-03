@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EntrolyticsNG\Tests;
+namespace Entrolytics\Tests;
 
 use Entrolytics\Client;
 use GuzzleHttp\Client as HttpClient;
@@ -12,10 +12,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
-
-// The package's classes are not reachable through its PSR-4 autoload map.
-require_once __DIR__ . '/../src/Exception/EntrolyticsException.php';
-require_once __DIR__ . '/../src/Client.php';
 
 final class ClientTest extends TestCase
 {
@@ -42,6 +38,32 @@ final class ClientTest extends TestCase
     private function payload(int $index): array
     {
         return json_decode((string) $this->sent[$index]['request']->getBody(), true);
+    }
+
+    /** @return array<string, mixed> */
+    private static function composerJson(): array
+    {
+        return json_decode((string) file_get_contents(__DIR__ . '/../composer.json'), true);
+    }
+
+    public function testClassesAndLaravelDiscoveryEntriesResolveThroughComposersAutoloader(): void
+    {
+        $loader = require __DIR__ . '/../vendor/autoload.php';
+        $laravel = self::composerJson()['extra']['laravel'];
+        $classes = [
+            Client::class,
+            \Entrolytics\Exception\EntrolyticsException::class,
+            \Entrolytics\Exception\AuthenticationException::class,
+            \Entrolytics\Exception\ValidationException::class,
+            \Entrolytics\Exception\RateLimitException::class,
+            \Entrolytics\Exception\NetworkException::class,
+            ...$laravel['providers'],
+            ...array_values($laravel['aliases']),
+        ];
+
+        foreach ($classes as $class) {
+            $this->assertNotFalse($loader->findFile($class), "{$class} is not autoloadable");
+        }
     }
 
     public function testDerivesOneVisitorPerIpAndUserAgentAndForwardsThem(): void
