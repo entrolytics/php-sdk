@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Entrolytics\Tests;
 
 use Entrolytics\Client;
+use Entrolytics\Exception\ValidationException;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -64,6 +65,17 @@ final class ClientTest extends TestCase
         foreach ($classes as $class) {
             $this->assertNotFalse($loader->findFile($class), "{$class} is not autoloadable");
         }
+    }
+
+    public function testTheUserAgentCarriesThePackageVersion(): void
+    {
+        $client = $this->client();
+        $client->identify(['website_id' => self::WEBSITE_ID, 'user_id' => 'user-1']);
+
+        $this->assertSame(
+            'entrolytics-php/' . self::composerJson()['version'],
+            $this->sent[0]['request']->getHeaderLine('User-Agent'),
+        );
     }
 
     public function testDerivesOneVisitorPerIpAndUserAgentAndForwardsThem(): void
@@ -164,7 +176,7 @@ final class ClientTest extends TestCase
     {
         $client = $this->client();
 
-        $client->trackVital(['website_id' => self::WEBSITE_ID, 'metric' => 'LCP', 'value' => 1200.0, 'rating' => 'good']);
+        $client->trackVital(['website_id' => self::WEBSITE_ID, 'metric' => 'LCP', 'value' => 1200.0]);
         $client->trackFormEvent([
             'website_id' => self::WEBSITE_ID,
             'event_type' => 'start',
@@ -177,5 +189,38 @@ final class ClientTest extends TestCase
             $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $payload['eventId'] ?? '');
             $this->assertNotFalse(\DateTimeImmutable::createFromFormat(DATE_ATOM, $payload['timestamp'] ?? ''));
         }
+    }
+
+    public function testAVitalSendsOnlyTheFieldsTheVitalsEndpointAccepts(): void
+    {
+        $client = $this->client();
+
+        // The API rates the value itself, so no rating is needed.
+        $client->trackVital([
+            'website_id' => self::WEBSITE_ID,
+            'metric' => 'CLS',
+            'value' => 0.12,
+            'url' => 'https://example.test/pricing',
+            'path' => '/pricing',
+        ]);
+
+        $payload = $this->payload(0);
+        $keys = array_keys($payload);
+        sort($keys);
+        $this->assertSame('/api/collect/vitals', $this->sent[0]['request']->getUri()->getPath());
+        $this->assertSame(
+            ['eventId', 'metricName', 'metricValue', 'path', 'sessionId', 'timestamp', 'url', 'visitorId', 'websiteId'],
+            $keys,
+        );
+        $this->assertSame('CLS', $payload['metricName']);
+        $this->assertSame(0.12, $payload['metricValue']);
+        $this->assertSame('/pricing', $payload['path']);
+    }
+
+    public function testAVitalWithoutAValueIsRejected(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->client()->trackVital(['website_id' => self::WEBSITE_ID, 'metric' => 'LCP']);
     }
 }

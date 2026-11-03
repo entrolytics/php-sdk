@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Breaking
+
+- `trackVital` no longer requires `rating`, which it never sent: the API rates the value itself.
+  It now requires a numeric `value` instead of sending 0 when it is missing. The documented
+  `delta`, `id`, `navigation_type` and `attribution` parameters were never sent and the vitals
+  endpoint does not accept them, so they are no longer documented.
+
 ### Fixed
 
 - The package could not be autoloaded: `composer.json` mapped the namespace `EntrolyticsNG\` while
@@ -12,3 +19,4 @@
   as a new visit. When `ip_address` or `user_agent` is given, as the Laravel middleware does, the
   session id is now derived from them per 30-minute UTC window, cookieless like the visitor id. An
   explicit `session_id` still wins; without visitor context a new id per call is kept.
+- The SDK's `User-Agent` reported version 1.1.0; it now carries the package version.

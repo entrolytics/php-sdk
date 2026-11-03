@@ -29,7 +29,7 @@ class Client
 {
     private const DEFAULT_HOST = 'https://api.entrolytics.click';
     private const DEFAULT_TIMEOUT = 10.0;
-    private const VERSION = '1.1.0';
+    private const VERSION = '2.2.0';
 
     private string $apiKey;
     private string $host;
@@ -246,11 +246,6 @@ class Client
      *     website_id: string,
      *     metric: string,
      *     value: float,
-     *     rating: string,
-     *     delta?: float,
-     *     id?: string,
-     *     navigation_type?: string,
-     *     attribution?: array<string, mixed>,
      *     url?: string,
      *     path?: string,
     *     session_id?: string,
@@ -263,7 +258,7 @@ class Client
     {
         $websiteId = $params['website_id'] ?? null;
         $metric = $params['metric'] ?? null;
-        $rating = $params['rating'] ?? null;
+        $value = $params['value'] ?? null;
 
         if (empty($websiteId)) {
             throw new ValidationException('website_id is required');
@@ -271,8 +266,9 @@ class Client
         if (empty($metric)) {
             throw new ValidationException('metric is required (LCP, INP, CLS, TTFB, or FCP)');
         }
-        if (empty($rating)) {
-            throw new ValidationException('rating is required (good, needs-improvement, or poor)');
+        // The API rates the value against the metric's thresholds itself.
+        if (!is_int($value) && !is_float($value)) {
+            throw new ValidationException('value is required and must be a number');
         }
 
         $payload = [
@@ -284,7 +280,7 @@ class Client
             'url' => $this->normalizeUrl($params['url'] ?? null, '/vital'),
             'path' => $params['path'] ?? '/vital',
             'metricName' => $metric,
-            'metricValue' => $params['value'] ?? 0,
+            'metricValue' => $value,
         ];
 
         return $this->sendToEndpoint('/api/collect/vitals', $payload);
