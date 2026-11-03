@@ -93,6 +93,58 @@ final class ClientTest extends TestCase
         );
     }
 
+    public function testSessionDerivationMatchesTheOtherServerSdks(): void
+    {
+        $derive = new \ReflectionMethod(Client::class, 'deriveSessionId');
+        $client = new Client('ent_test');
+        $session = fn(string $at): string => $derive->invoke(
+            $client,
+            self::WEBSITE_ID,
+            self::IP,
+            self::USER_AGENT,
+            new \DateTimeImmutable($at),
+        );
+
+        // One 30-minute UTC window: 14:30 up to, but not including, 15:00.
+        foreach (['2026-09-24T14:30:00Z', '2026-09-24T14:47:00Z', '2026-09-24T14:59:59Z'] as $at) {
+            $this->assertSame('6e75928f-813d-49ee-a4dc-5d2e299d7eb2', $session($at), $at);
+        }
+        $this->assertSame('f656564a-ee6c-4cc1-8309-0b69c73bfd3d', $session('2026-09-24T15:00:00Z'));
+    }
+
+    public function testDerivesOneSessionPerVisitorFromTheEventTime(): void
+    {
+        $client = $this->client();
+        $visitor = ['website_id' => self::WEBSITE_ID, 'ip_address' => self::IP, 'user_agent' => self::USER_AGENT];
+
+        $client->pageView($visitor + ['url' => 'https://example.test/']);
+        $client->track($visitor + ['event' => 'signup']);
+
+        $derive = new \ReflectionMethod(Client::class, 'deriveSessionId');
+        $first = $this->payload(0);
+        $this->assertSame(
+            $derive->invoke(new Client('ent_test'), self::WEBSITE_ID, self::IP, self::USER_AGENT, new \DateTimeImmutable($first['timestamp'])),
+            $first['sessionId'],
+        );
+        $this->assertSame($first['sessionId'], $this->payload(1)['sessionId']);
+    }
+
+    public function testAnExplicitSessionIdWins(): void
+    {
+        $client = $this->client();
+        $sessionId = '1c9d7e3a-5b2f-4c8d-9e1f-3a4b5c6d7e8f';
+
+        $client->pageView([
+            'website_id' => self::WEBSITE_ID,
+            'url' => 'https://example.test/',
+            'session_id' => $sessionId,
+            'ip_address' => self::IP,
+            'user_agent' => self::USER_AGENT,
+        ]);
+
+        $this->assertSame($sessionId, $this->payload(0)['sessionId']);
+    }
+
     public function testAnExplicitVisitorIdWins(): void
     {
         $client = $this->client();

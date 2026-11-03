@@ -291,7 +291,7 @@ Track a custom event.
 | url         | string | No       | Page URL where event occurred           |
 | referrer    | string | No       | Referrer URL                            |
 | user\_id    | string | No       | User identifier                         |
-| session\_id | string | No       | Session identifier                      |
+| session\_id | string | No       | Session identifier (derived from ip\_address and user\_agent when omitted) |
 | user\_agent | string | No       | User agent string                       |
 | ip\_address | string | No       | Client IP address                       |
 

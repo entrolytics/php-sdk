@@ -98,11 +98,12 @@ class Client
             $properties['distinctId'] = $params['user_id'];
         }
 
+        $now = new \DateTimeImmutable();
         $payload = [
             'websiteId' => $websiteId,
             'eventId' => $this->generateUuid(),
-            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
+            'timestamp' => $now->format(DATE_ATOM),
+            'sessionId' => $params['session_id'] ?? $this->requestSessionId($websiteId, $params, $now),
             'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
             'url' => $this->normalizeUrl($params['url'] ?? null, '/track'),
             'eventType' => 'custom_event',
@@ -164,11 +165,12 @@ class Client
             $data['distinctId'] = $params['user_id'];
         }
 
+        $now = new \DateTimeImmutable();
         $payload = [
             'websiteId' => $websiteId,
             'eventId' => $this->generateUuid(),
-            'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'sessionId' => $params['session_id'] ?? $this->generateUuid(),
+            'timestamp' => $now->format(DATE_ATOM),
+            'sessionId' => $params['session_id'] ?? $this->requestSessionId($websiteId, $params, $now),
             'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
             'url' => $this->normalizeUrl($url, '/'),
             'eventType' => 'pageview',
@@ -543,9 +545,51 @@ class Client
         ?\DateTimeImmutable $now = null,
     ): string {
         $day = ($now ?? new \DateTimeImmutable())->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d');
-        $digest = hash_hmac('sha256', "{$websiteId}\0{$day}\0{$ip}\0{$userAgent}", $this->apiKey, true);
 
-        return $this->toUuidV4(substr($digest, 0, 16));
+        return $this->keyedUuid("{$websiteId}\0{$day}\0{$ip}\0{$userAgent}");
+    }
+
+    /**
+     * The session id for an event made on a visitor's behalf: one derived from the visitor's IP
+     * address, user agent and the event time, or a new one when neither is known.
+     *
+     * @param array<string, mixed> $params Event parameters
+     */
+    private function requestSessionId(string $websiteId, array $params, \DateTimeImmutable $now): string
+    {
+        if (empty($params['ip_address']) && empty($params['user_agent'])) {
+            return $this->generateUuid();
+        }
+
+        return $this->deriveSessionId($websiteId, $params['ip_address'] ?? '', $params['user_agent'] ?? '', $now);
+    }
+
+    /**
+     * A site-scoped session id for the 30-minute UTC window the event falls in, derived from the
+     * visitor's IP address and user agent.
+     *
+     * Server-side events carry no browser session, and a new id per call counted every event as a
+     * new visit. Like the visitor id the session id is cookieless and stateless: a keyed hash of the
+     * visitor and the window start (`YYYY-MM-DDTHH:MM`, minutes 00 or 30). A visit that crosses a
+     * window boundary counts as two sessions.
+     */
+    private function deriveSessionId(
+        string $websiteId,
+        string $ip,
+        string $userAgent,
+        \DateTimeImmutable $now,
+    ): string {
+        $slot = gmdate('Y-m-d\\TH:i', intdiv($now->getTimestamp(), 1800) * 1800);
+
+        return $this->keyedUuid("{$websiteId}\0session\0{$slot}\0{$ip}\0{$userAgent}");
+    }
+
+    /**
+     * A UUID from the first 16 bytes of an HMAC-SHA256 of the message, keyed with the API key.
+     */
+    private function keyedUuid(string $message): string
+    {
+        return $this->toUuidV4(substr(hash_hmac('sha256', $message, $this->apiKey, true), 0, 16));
     }
 
     private function toUuidV4(string $bytes): string
