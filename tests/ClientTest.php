@@ -177,6 +177,25 @@ final class ClientTest extends TestCase
         $this->assertSame($visitorId, $this->payload(0)['visitorId']);
     }
 
+    public function testCollectEventsDeclareHowLongTheVisitorIdLasts(): void
+    {
+        $client = $this->client(array_fill(0, 7, new Response(202)));
+        $visitor = ['website_id' => self::WEBSITE_ID, 'ip_address' => self::IP, 'user_agent' => self::USER_AGENT];
+        $visitorId = '0b8f6a52-3c1d-4e7f-8a9b-1c2d3e4f5a6b';
+
+        $client->pageView($visitor + ['url' => 'https://example.test/']);
+        $client->track(['website_id' => self::WEBSITE_ID, 'event' => 'signup', 'user_agent' => self::USER_AGENT]);
+        $client->track($visitor + ['event' => 'signup', 'visitor_id' => $visitorId]);
+        $client->pageView(['website_id' => self::WEBSITE_ID, 'url' => 'https://example.test/', 'visitor_id' => $visitorId]);
+        $client->track(['website_id' => self::WEBSITE_ID, 'event' => 'signup']);
+        $client->identify(['website_id' => self::WEBSITE_ID, 'user_id' => 'user-1']);
+        $client->trackVital(['website_id' => self::WEBSITE_ID, 'metric' => 'LCP', 'value' => 1200.0, 'visitor_id' => $visitorId]);
+
+        $scopes = array_map(fn(int $index) => $this->payload($index)['visitorIdScope'] ?? null, range(0, 6));
+        // The vitals endpoint does not accept the field.
+        $this->assertSame(['daily', 'daily', 'persistent', 'persistent', null, null, null], $scopes);
+    }
+
     public function testVitalsAndFormEventsCarryTheRequiredEventIdAndTimestamp(): void
     {
         $client = $this->client();

@@ -26,3 +26,8 @@
   session id is now derived from them per 30-minute UTC window, cookieless like the visitor id. An
   explicit `session_id` still wins; without visitor context a new id per call is kept.
 - The SDK's `User-Agent` reported version 1.1.0; it now carries the package version.
+- `/collect` events did not say how long their `visitorId` identifies the visitor, so the API's
+  retention report, which counts only persistent visitor ids, could not use any server-side
+  traffic. `track` and `pageView` now send `visitorIdScope`: `persistent` for a caller-supplied
+  `visitor_id`, `daily` for the id derived from `ip_address` and `user_agent`; it is left out for
+  a random id.

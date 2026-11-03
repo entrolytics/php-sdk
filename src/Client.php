@@ -104,7 +104,7 @@ class Client
             'eventId' => $this->generateUuid(),
             'timestamp' => $now->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->requestSessionId($websiteId, $params, $now),
-            'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
+            ...$this->visitorIdentity($websiteId, $params),
             'url' => $this->normalizeUrl($params['url'] ?? null, '/track'),
             'eventType' => 'custom_event',
             'eventName' => $event,
@@ -171,7 +171,7 @@ class Client
             'eventId' => $this->generateUuid(),
             'timestamp' => $now->format(DATE_ATOM),
             'sessionId' => $params['session_id'] ?? $this->requestSessionId($websiteId, $params, $now),
-            'visitorId' => $params['visitor_id'] ?? $this->requestVisitorId($websiteId, $params),
+            ...$this->visitorIdentity($websiteId, $params),
             'url' => $this->normalizeUrl($url, '/'),
             'eventType' => 'pageview',
             'properties' => $data,
@@ -506,18 +506,28 @@ class Client
     }
 
     /**
-     * The visitor id for an event made on a visitor's behalf: one derived from the visitor's IP
-     * address and user agent, or a new one when neither is known.
+     * The visitor id of a /collect event and, when known, how long it identifies the visitor: the
+     * caller's visitor_id (persistent), else one derived from the visitor's IP address and user
+     * agent (daily), else a new one, whose scope is left out.
+     *
+     * The API's retention report counts only persistent visitor ids.
      *
      * @param array<string, mixed> $params Event parameters
+     * @return array{visitorId: string, visitorIdScope?: 'daily'|'persistent'}
      */
-    private function requestVisitorId(string $websiteId, array $params): string
+    private function visitorIdentity(string $websiteId, array $params): array
     {
+        if (isset($params['visitor_id'])) {
+            return ['visitorId' => $params['visitor_id'], 'visitorIdScope' => 'persistent'];
+        }
         if (empty($params['ip_address']) && empty($params['user_agent'])) {
-            return $this->generateUuid();
+            return ['visitorId' => $this->generateUuid()];
         }
 
-        return $this->deriveVisitorId($websiteId, $params['ip_address'] ?? '', $params['user_agent'] ?? '');
+        return [
+            'visitorId' => $this->deriveVisitorId($websiteId, $params['ip_address'] ?? '', $params['user_agent'] ?? ''),
+            'visitorIdScope' => 'daily',
+        ];
     }
 
     /**
