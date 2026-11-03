@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Entrolytics;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use Entrolytics\Exception\AuthenticationException;
 use Entrolytics\Exception\EntrolyticsException;
 use Entrolytics\Exception\NetworkException;
@@ -455,13 +455,8 @@ class Client
 
             $statusCode = $response->getStatusCode();
             return $statusCode === 200 || $statusCode === 201 || $statusCode === 202;
-        } catch (RequestException $e) {
+        } catch (BadResponseException $e) {
             $response = $e->getResponse();
-
-            if ($response === null) {
-                throw new NetworkException('Request failed: ' . $e->getMessage(), $e);
-            }
-
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
 

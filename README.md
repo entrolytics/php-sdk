@@ -3,7 +3,7 @@
 
 - [![Packagist](https://img.shields.io/packagist/v/entrolytics/php.svg?logo=packagist\&logoColor=white)](https://packagist.org/packages/entrolytics/php)
 - [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-- [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4.svg?logo=php\&logoColor=white)](https://www.php.net/)
+- [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4.svg?logo=php\&logoColor=white)](https://www.php.net/)
 
 </div>
 

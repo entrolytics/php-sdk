@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Entrolytics\Tests;
 
 use Entrolytics\Client;
+use Entrolytics\Exception\NetworkException;
+use Entrolytics\Exception\RateLimitException;
 use Entrolytics\Exception\ValidationException;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -23,12 +27,13 @@ final class ClientTest extends TestCase
     /** @var list<array{request: RequestInterface}> */
     private array $sent = [];
 
-    private function client(): Client
+    /** @param list<Response|\Throwable>|null $responses */
+    private function client(?array $responses = null): Client
     {
         $client = new Client('ent_test');
         $http = new \ReflectionProperty(Client::class, 'http');
         $config = $http->getValue($client)->getConfig();
-        $config['handler'] = HandlerStack::create(new MockHandler(array_fill(0, 4, new Response(202))));
+        $config['handler'] = HandlerStack::create(new MockHandler($responses ?? array_fill(0, 4, new Response(202))));
         $config['handler']->push(Middleware::history($this->sent));
         $http->setValue($client, new HttpClient($config));
 
@@ -222,5 +227,32 @@ final class ClientTest extends TestCase
         $this->expectException(ValidationException::class);
 
         $this->client()->trackVital(['website_id' => self::WEBSITE_ID, 'metric' => 'LCP']);
+    }
+
+    public function testApiErrorsMapToTheSdksExceptions(): void
+    {
+        $event = ['website_id' => self::WEBSITE_ID, 'event' => 'signup'];
+        $client = $this->client([
+            new Response(400, [], '{"error":"Invalid payload"}'),
+            new Response(429, ['Retry-After' => '30']),
+            new ConnectException('Connection refused', new Request('POST', '/collect')),
+        ]);
+
+        try {
+            $client->track($event);
+            $this->fail('A 400 response must throw');
+        } catch (ValidationException $e) {
+            $this->assertSame('Invalid payload', $e->getMessage());
+        }
+
+        try {
+            $client->track($event);
+            $this->fail('A 429 response must throw');
+        } catch (RateLimitException $e) {
+            $this->assertSame(30, $e->getRetryAfter());
+        }
+
+        $this->expectException(NetworkException::class);
+        $client->track($event);
     }
 }

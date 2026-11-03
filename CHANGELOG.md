@@ -4,10 +4,16 @@
 
 ### Breaking
 
+- PHP 8.2 or newer is required; PHP 8.1 is end-of-life. The Laravel integration supports Laravel
+  12 and 13; Laravel 10 and 11 are end-of-life.
 - `trackVital` no longer requires `rating`, which it never sent: the API rates the value itself.
   It now requires a numeric `value` instead of sending 0 when it is missing. The documented
   `delta`, `id`, `navigation_type` and `attribution` parameters were never sent and the vitals
   endpoint does not accept them, so they are no longer documented.
+
+### Changed
+
+- Guzzle 8 is supported alongside Guzzle 7.16+ (Laravel 12 still requires Guzzle 7).
 
 ### Fixed
 
