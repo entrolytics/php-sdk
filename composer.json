@@ -12,7 +12,7 @@
         "web-analytics",
         "laravel"
     ],
-    "homepage": "https://entrolytics.click",
+    "homepage": "https://entrolytics.dev",
     "support": {
         "issues": "https://github.com/entrolytics/entrolytics/issues",
         "source": "https://github.com/entrolytics/entrolytics/tree/main/packages/php"
@@ -20,7 +20,7 @@
     "authors": [
         {
             "name": "Entrolytics",
-            "email": "hey@entrolytics.click"
+            "email": "hey@entrolytics.dev"
         }
     ],
     "require": {

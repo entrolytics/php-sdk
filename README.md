@@ -156,7 +156,7 @@ $client = new Client('ent_xxx', [
 ]);
 ```
 
-See the [Routing documentation](https://entrolytics.click/docs/concepts/routing) for more details.
+See the [Routing documentation](https://entrolytics.dev/docs/concepts/routing) for more details.
 
 ## Laravel Integration
 
@@ -363,7 +363,7 @@ try {
 | Option   | Type   | Default                     | Description                |
 | -------- | ------ | --------------------------- | -------------------------- |
 | api\_key | string | Required                    | Your Entrolytics API key   |
-| host     | string | `https://entrolytics.click` | Entrolytics host URL       |
+| host     | string | `https://entrolytics.dev` | Entrolytics host URL       |
 | timeout  | float  | 10.0                        | Request timeout in seconds |
 
 ```php

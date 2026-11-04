@@ -27,7 +27,7 @@ use Entrolytics\Exception\ValidationException;
  */
 class Client
 {
-    private const DEFAULT_HOST = 'https://api.entrolytics.click';
+    private const DEFAULT_HOST = 'https://api.entrolytics.dev';
     private const DEFAULT_TIMEOUT = 10.0;
     private const VERSION = '2.2.0';
 
